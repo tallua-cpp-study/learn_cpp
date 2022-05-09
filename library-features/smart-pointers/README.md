@@ -12,7 +12,32 @@
     5. must use as rvalue reference for parameter
     6. usage:
     ```cpp
-    
+    struct Obj {
+        Obj(std::string_view name)
+            : name(name)
+        {
+            std::cout << "created: " << name << std::endl;
+        }
+
+        ~Obj()
+        {
+            std::cout << "destroyed: " << name << std::endl;
+        }
+
+        std::string name;
+    };
+
+    void test_unique_ptr() {
+        auto obj1 = std::make_unique<Obj>("1"); // created: 1
+
+        // ERROR: cannot copy
+        //auto obj2 = obj1;
+
+        {
+            // you have to move to transfer ownership
+            auto obj1_moved = std::move(obj1);
+        }                                       // destroyed: 1
+    }
     ```
 
 2. `shared_ptr<T>`
@@ -22,7 +47,33 @@
     4. may be cunstructed from `unique_ptr`
     5. usage:
     ```cpp
-    
+    struct Obj {
+        Obj(std::string_view name)
+            : name(name)
+        {
+            std::cout << "created: " << name << std::endl;
+        }
+
+        ~Obj()
+        {
+            std::cout << "destroyed: " << name << std::endl;
+        }
+
+        std::string name;
+    };
+
+    void test_shared_ptr() {
+        auto obj1 = std::make_shared<Obj>("1");         // created: 1
+        {
+            std::shared_ptr<Obj> obj3_holder;
+            {
+                auto obj2 = std::make_shared<Obj>("2"); // created: 2
+                auto obj3 = std::make_shared<Obj>("3"); // created: 3
+
+                obj3_holder = obj3;
+            }                                           // destroyed: 2
+        }                                               // destroyed: 3
+    }                                                   // destroyed: 1
     ```
 
 3. `weak_ptr<T>`
@@ -34,7 +85,35 @@
     3. atomic copy/move/lock
     4. usage:
     ```cpp
-    
+    struct Obj {
+        Obj(std::string_view name)
+            : name(name)
+        {
+            std::cout << "created: " << name << std::endl;
+        }
+
+        ~Obj()
+        {
+            std::cout << "destroyed: " << name << std::endl;
+        }
+
+        std::string name;
+    };
+
+    void test_weak_ptr() {
+        auto obj1 = std::make_shared<Obj>("1");                 // created: 1
+        {
+            std::weak_ptr<Obj> obj2_weak;
+            {
+                auto obj2 = std::make_shared<Obj>("2");         // created: 2
+
+                obj2_weak = obj2;
+            }                                                   // destroyed: 2
+
+            auto new_obj2 = obj2_weak.lock();                   // nullptr
+            std::cout << (new_obj2 ? "t" : "f") << std::endl;   // f
+        }
+    }                                                           // destroyed: 1
     ```
 
 4. `observer_ptr<T>`
