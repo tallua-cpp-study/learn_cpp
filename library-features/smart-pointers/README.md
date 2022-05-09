@@ -73,6 +73,25 @@
         }                                               // destroyed: 3
     }                                                   // destroyed: 1
     ```
+    
+    - possible implementation
+    ```mermaid
+    classDiagram
+
+    class shared_ptr
+    shared_ptr --> ControlBlock
+    shared_ptr --> T
+    
+    class ControlBlock {
+        <<atomic>>
+        int shared_count;
+        int weak_count;
+    }
+    
+    class T {
+        <<template type>>
+    }
+    ```
 
 3. `weak_ptr<T>`
     1. doesn't own memory
@@ -186,6 +205,7 @@
         author->book = book;
     }
     ```
+    - break by changing one shared_ptr to weak_ptr
 
 ---
 ## See also
